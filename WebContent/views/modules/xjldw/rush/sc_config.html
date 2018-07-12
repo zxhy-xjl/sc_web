@@ -1,0 +1,1691 @@
+<!DOCTYPE html>
+<html ng-app="app">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport"
+          content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no,minimal-ui"/>
+<meta content="yes" name="apple-mobile-web-app-capable" />
+<meta content="yes" name="apple-touch-fullscreen" />
+<meta content="telephone=no" name="format-detection" />
+<meta content="black" name="apple-mobile-web-app-status-bar-style" />
+<link rel="stylesheet" href="/sp/public/weui/css/weui.css">
+<link rel="stylesheet" href="/sp/public/weui/css/weui2.css"/>
+<link rel="stylesheet" href="/sp/public/weui/css/weui3.css"/>
+
+<!--  -->
+<link rel="stylesheet" href="/sp/public/weui/css/weui.min.css">
+<link rel="stylesheet" href="/sp/public/weui/css/jquery-weui.css"/>
+<!-- <link rel="stylesheet" href="/sp/public/weui/css/demos.css"/>  -->
+
+<!--  -->
+<script src="/sp/public/js/jquery-1.9.1.min.js"></script>
+<script src="/sp/public/weui/js/jquery-weui.js"></script>
+<script src="https://cdn.bootcss.com/ionic/1.3.2/js/ionic.bundle.min.js"></script>
+<script src="/sp/public/widgets/zeptojs/zepto.min.js"></script>
+<script src="/sp/public/widgets/dropload/dropload.min.js"></script>
+<!-- <script src="/sp/public/widgets/angularjs/angular.min.js"></script> -->
+<script src="/sp/public/widgets/angularjs/angular-touch.min.js"></script>
+<script src="/sp/public/js/zepto.min.js"></script>
+<script src="/sp/public/widgets/picker/js/picker.js"></script>
+
+<script type="text/javascript">
+angular.module('app', ['ngTouch','ionic'])
+	.value('appValue', {
+	    index: 1,
+	    size: 10
+	})
+	.factory('agentRemote',['$http','appValue',function($http, appValue){
+		return {
+			addTimeQuantumConfig:function(data){
+				return $http({
+					method:'post',
+					url:'/sp/mobile/Execute/timeQuantumConfig',
+					params:data
+				});
+			},
+			queryConfig:function(data){
+				return $http({
+					method:'post',
+					url:'/sp/mobile/Execute/queryScConfig'
+				})
+			},
+			queryConfigNotinterval:function(){
+				return $http({
+					method:'post',
+					url:'/sp/mobile/Execute/queryScConfigNotinterval'
+				})
+			},
+			modifyInterval:function(data){
+				return $http({
+					method:'post',
+					url:'/sp/mobile/Execute/modifyInterval',
+					params:data
+				})
+			},
+			queryInterval:function(){
+				return $http({
+					method:'post',
+					url:'/sp/mobile/Execute/queryInterval'
+				})
+			},
+			queryConfigById:function(data){
+				return $http({
+					method:'post',
+					url:'/sp/mobile/Execute/queryConfigById',
+					params:data
+				})
+			},
+			modifyStatus:function(data){
+				return $http({
+					method:'post',
+					url:'/sp/mobile/Execute/modifyStatus',
+					params:data
+				})
+			},
+			modifyIntervalIsNull:function(data){
+				return $http({
+					method:'post',
+					url:'/sp/mobile/Execute/modifyItervalIsNull',
+					params:data
+				})
+			},
+			modifyTimeQuanTumById:function(data){
+				return $http({
+					method:'post',
+					url:'/sp/mobile/Execute/modifyTimeQuanTunById',
+					params:data
+				})
+			},
+			modifyIntervalById:function(data){
+				return $http({
+					method:'post',
+					url:'/sp/mobile/Execute/modifyItervalById',
+					params:data
+				})
+			},
+			saveToilet:function(data){
+				return $http({
+					method:'post',
+					url:'/sp/mobile/Execute/saveToilet',
+					params:data
+				})
+			},
+			queryToilet:function(index, size){
+				return $http({
+					method:'post',
+					url:'/sp/mobile/Execute/querytoilet',
+					params: {
+                         PAGE_INDEX: index || appValue.index,
+                         PAGE_SIZE: size || appValue.size
+                     }
+				});
+			},
+			del:function(data){
+				return $http({
+					method:'post',
+					url:'/sp/mobile/Execute/delToilet',
+					params:data
+				});
+			},
+			queryById:function(data){
+				return $http({
+					method:'post',
+					url:'/sp/mobile/Execute/queryToiletById',
+					params:data
+				});
+			},
+			modifyToilet:function(data){
+				return $http({
+					method:'post',
+					url:'/sp/mobile/Execute/modifyToilet',
+					params:data
+				});
+			},
+			modifyLeaveRush:function(data){
+				return $http({
+					method:'post',
+					url:'/sp/mobile/Execute/modifyLeaveRush',
+					params:data
+				});
+			},
+			queryMosq:function(){
+				return $http({
+					method:'post',
+					url:'/sp/mobile/Execute/queryScMosq'
+				});
+			},
+			queryLam:function(){
+				return $http({
+					method:'post',
+					url:'/sp/mobile/Execute/queryScLam'
+				});
+			},
+			queryVen:function(){
+				return $http({
+					method:'post',
+					url:'/sp/mobile/Execute/queryScVen'
+				});
+			}
+		}
+	}])
+	.controller('MainController',['$scope','appValue','agentRemote','$timeout',function($scope, appValue,agentRemote,$timeout){
+	 $scope.timeQuanTumList = [];//感应时段列表
+	 $scope.timeQuanTumNotInterval = [];//未设置时段列表
+	 $scope.timeQuanTumId = [];//感应时段id 集合
+	 $scope.timeInterval = [];//配置冲水间隔
+	 $scope.redactToilet = [];
+	 $scope.mosqList = [];//驱蚊时间配置
+	 $scope.lamList = [];//灯光时间配置
+	 $scope.venList = [];//通风配置
+	 $scope.id = '';
+	 $scope.clickAction = function(param,flag){
+		  $.actions({
+	          title: "选择操作",
+	          onClose: function() {
+	            console.log("close");
+	          },
+	          actions: [
+	            {
+	              text: "编辑",
+	              className: "color-warning",
+	              onClick: function() {
+	                if(typeof(param) == 'undefined'){
+	                	$.toptips('请选择数据','warning');return;
+	                }
+	                var data = {"id":param};
+	                agentRemote.queryConfigById(data).then(function(response){
+                		var res = response.data.data.timeQuantum;
+	                	 $scope.id = response.data.data.id;
+	                	 if('1' == flag){
+	                		$("#half_update").popup('open');
+	 	                	$("#start_update").val(res.split(' — ')[0].replace(':',' ：'));
+	 	                	$("#end_update").val(res.split(' — ')[1].replace(':',' ：'));
+	 	                }
+	                	if('2' == flag){
+	 	                	$("#time_min_update").popup('open');
+	 	                	$("#start_min_update").val(res.split(' — ')[0].replace(':',' ：'));
+	 	                	$("#end_min_update").val(res.split(' — ')[1].replace(':',' ：'));
+	 	                	$("#minute_update").val(response.data.data.interval);
+	 	                }
+	                	if('3' == flag){
+	                		$("#mosq_update").popup('open');
+	 	                	$("#start_mosq_update").val(res.split(' — ')[0].replace(':',' ：'));
+	 	                	$("#end_mosq_update").val(res.split(' — ')[1].replace(':',' ：'));
+	                	}
+	                	if('4' == flag){
+	                		$("#lam_update").popup('open');
+	 	                	$("#start_update_lam").val(res.split(' — ')[0].replace(':',' ：'));
+	 	                	$("#end_update_lam").val(res.split(' — ')[1].replace(':',' ：'));
+	 	                	$("#minute_lam_update").val(response.data.data.interval)
+	                	}
+	                	if('5' == flag){
+	                		$("#ven_update").popup('open');
+	 	                	$("#start_update_ven").val(res.split(' — ')[0].replace(':',' ：'));
+	 	                	$("#end_update_ven").val(res.split(' — ')[1].replace(':',' ：'));
+	                	}
+	                },function(response){
+	                })
+	                
+	              }
+	            },
+	            {
+	              text: "删除",
+	              className: 'color-danger',
+	              onClick: function() {
+	                if(typeof(param) == ''){
+	                	$.toptips('请选择数据','warning');return;
+	                }
+	                var data = {"id":param};
+	                if('1' == flag){
+	 	                agentRemote.modifyStatus(data).then(function(response){
+	 	                	 $scope.queryConfig();
+	 	                },function(response){
+	 	                })
+	                }
+	                if('2'==flag){
+	                	agentRemote.modifyIntervalIsNull(data).then(function(response){
+	                		 $scope.queryInterval();
+	                	},function(response){
+	                	})
+	                }
+	                if('3' == flag){
+	                	agentRemote.modifyStatus(data).then(function(response){
+	                		 $scope.queryMosq();
+	 	                },function(response){
+	 	                })
+	                }
+	                if('4'==flag){
+	                	agentRemote.modifyStatus(data).then(function(response){
+	                		 $scope.queryLam();
+	 	                },function(response){
+	 	                })
+	                }
+	                if('5'==flag){
+	                	agentRemote.modifyStatus(data).then(function(response){
+	                		 $scope.queryVen();
+	 	                },function(response){
+	 	                })
+	                }
+	              }
+	            }
+	          ]
+	        });
+		}
+
+	 $scope.onHold = function(param){
+    	 $.actions({
+	          title: "选择操作",
+	          onClose: function() {
+	            console.log("close");
+	          },
+	          actions: [
+	            {
+	              text: "编辑",
+	              className: "color-warning",
+	              onClick: function() {
+	            	  var data = {"id":param}
+	            	  agentRemote.queryById(data).then(function(data){
+	                	console.log(data.data.data.toiletName);
+	                	$.prompt("修改卫生间", data.data.data.toiletName, function(text) {
+	           			 var data = {"toiletName":text,"id":param};
+	           			agentRemote.modifyToilet(data).then(function(data){
+	           				$scope.queryToilet()
+	           	          })
+	           	        }, function() {
+	           	          //取消操作
+	           	        });
+	                })
+	              }
+	            },
+	            {
+	              text: "删除",
+	              className: 'color-danger',
+	              onClick: function() {
+	            	  var data = {"id":param}
+	            	  agentRemote.del(data).then(function(data){
+	            		  $scope.queryToilet()
+	            	  })
+	              }
+	            }
+	          ]
+	        });
+     }
+	 $scope.grade;
+	 $scope.modifyLeaveRush = function(){
+		 var data = {"leaveRush":$scope.grade};
+		 agentRemote.modifyLeaveRush(data).then(function(response){
+		 },function(response){
+		 })
+	 }
+	 $scope.queryToilet = function(){
+		 agentRemote.queryToilet().then(function(response){
+			 $scope.redactToilet = response.data.data.data;
+		 },function(response){
+		 })
+	 }
+	 $scope.queryNotInterval = function(){
+		 agentRemote.queryConfigNotinterval().then(function(response){
+			 var arr_quan = [];
+			 var arr_id = [];
+			if(response.data.data.data.length > 0){
+				for(var i = 0;i<response.data.data.data.length;i++){
+					arr_quan.push(response.data.data.data[i].timeQuantum);
+					arr_id.push(response.data.data.data[i].id);
+				}
+			}
+			$scope.timeQuanTumNotInterval = arr_quan;
+		 },function(response){
+		 })
+	 }
+	 $scope.queryConfigNotinternal = function(){
+		 agentRemote.queryConfigNotinterval().then(function(response){
+			 var arr_quan = [];
+			 var arr_id = [];
+			if(response.data.data.data.length > 0){
+				for(var i = 0;i<response.data.data.data.length;i++){
+					arr_quan.push(response.data.data.data[i].timeQuantum);
+					arr_id.push(response.data.data.data[i].id);
+				}
+			}
+			$("#_timeQuanTum").picker({
+			        title: "选择感应时间段",
+			        toolbarCloseText:'确定',
+			        cols: [
+			          {
+			            textAlign: 'center',
+			            values: arr_quan
+			          }
+			        ]
+			 });
+		 },function(response){
+		 })
+	 }
+	 $scope.timeMinute = function(){
+		 $("#minute_lam_update").picker({title:"选择间隔时间",
+		        cols: [
+		          {
+		            textAlign: 'center',
+		            values: (function () {
+		                var arr = [];
+		                for (var i = 1; i <= 60; i++) {
+		                	if(i%5 == 0){
+		                		arr.push(i < 10 ? i : i);
+		                	}
+		                }
+		                return arr;
+		            })()
+		            
+		          }
+		        ]});
+		 $("#minute_lam").picker({title:"选择间隔时间",
+		        cols: [
+		          {
+		            textAlign: 'center',
+		            values: (function () {
+		                var arr = [];
+		                for (var i = 1; i <= 60; i++) {
+		                	if(i%5 == 0){
+		                		arr.push(i < 10 ? i : i);
+		                	}
+		                }
+		                return arr;
+		            })()
+		            
+		          }
+		        ]}); 
+		 $("#minute").picker({title:"选择间隔时间",
+		        cols: [
+		          {
+		            textAlign: 'center',
+		            values: (function () {
+		                var arr = [];
+		                for (var i = 1; i <= 60; i++) {
+		                	if(i%5 == 0){
+		                		arr.push(i < 10 ? i : i);
+		                	}
+		                }
+		                return arr;
+		            })()
+		            
+		          }
+		        ]}); 
+		 $("#minute_update").picker({title:"选择间隔时间",
+		        cols: [
+		          {
+		            textAlign: 'center',
+		            values: (function () {
+		                var arr = [];
+		                for (var i = 1; i <= 60; i++) {
+		                	if(i%5 == 0){
+		                		arr.push(i < 10 ? i : i);
+		                	}
+		                }
+		                return arr;
+		            })()
+		            
+		          }
+		        ]}); 
+	 }
+	 $scope.timePicker = function(){
+		  $("#start_update_ven").picker({title:"选择时间",
+		        cols: [
+		          {
+		            textAlign: 'left',
+		            values: (function () {
+		                var arr = [];
+		                for (var i = 0; i <= 23; i++) { arr.push(i < 10 ? '0' + i : i); }
+		                return arr;
+		            })()
+		            
+		          },
+		          {
+		            textAlign: 'right',
+		            values:  (function () {
+		                var arr = [];
+		                arr.push('：00');
+		                return arr;
+		            })(),
+		          }
+		        ]});
+		 $("#start_ven").picker({title:"选择时间",
+		        cols: [
+		          {
+		            textAlign: 'left',
+		            values: (function () {
+		                var arr = [];
+		                for (var i = 0; i <= 23; i++) { arr.push(i < 10 ? '0' + i : i); }
+		                return arr;
+		            })()
+		            
+		          },
+		          {
+		            textAlign: 'right',
+		            values:  (function () {
+		                var arr = [];
+		                arr.push('：00');
+		                return arr;
+		            })(),
+		          }
+		        ]});
+		 $("#start_update_lam").picker({title:"选择时间",
+		        cols: [
+		          {
+		            textAlign: 'left',
+		            values: (function () {
+		                var arr = [];
+		                for (var i = 0; i <= 23; i++) { arr.push(i < 10 ? '0' + i : i); }
+		                return arr;
+		            })()
+		            
+		          },
+		          {
+		            textAlign: 'right',
+		            values:  (function () {
+		                var arr = [];
+		                arr.push('：00');
+		                return arr;
+		            })(),
+		          }
+		        ]});
+		 $("#end_update_ven").picker({title:"选择时间",
+		        cols: [
+		          {
+		            textAlign: 'left',
+		            values: (function () {
+		                var arr = [];
+		                for (var i = 0; i <= 23; i++) { arr.push(i < 10 ? '0' + i : i); }
+		                return arr;
+		            })()
+		            
+		          },
+		          {
+		            textAlign: 'right',
+		            values:  (function () {
+		                var arr = [];
+		                arr.push('：00');
+		                return arr;
+		            })(),
+		          }
+		        ]});
+		 $("#start_lam").picker({title:"选择时间",
+		        cols: [
+		          {
+		            textAlign: 'left',
+		            values: (function () {
+		                var arr = [];
+		                for (var i = 0; i <= 23; i++) { arr.push(i < 10 ? '0' + i : i); }
+		                return arr;
+		            })()
+		            
+		          },
+		          {
+		            textAlign: 'right',
+		            values:  (function () {
+		                var arr = [];
+		                arr.push('：00');
+		                return arr;
+		            })(),
+		          }
+		        ]}); 
+		 $("#start_mosq").picker({title:"选择时间",
+		        cols: [
+		          {
+		            textAlign: 'center',
+		            values: (function () {
+		                var arr = [];
+		                for (var i = 0; i <= 23; i++) { arr.push(i < 10 ? '0' + i : i); }
+		                return arr;
+		            })()
+		            
+		          },
+		          {
+		            textAlign: 'center',
+		            values:  (function () {
+		                var arr = [];
+		                arr.push('：00');
+		                return arr;
+		            })(),
+		          }
+		        ]});
+		 $("#start_mosq_update").picker({title:"选择时间",
+		        cols: [
+		          {
+		            textAlign: 'center',
+		            values: (function () {
+		                var arr = [];
+		                for (var i = 0; i <= 23; i++) { arr.push(i < 10 ? '0' + i : i); }
+		                return arr;
+		            })()
+		            
+		          },
+		          {
+		            textAlign: 'center',
+		            values:  (function () {
+		                var arr = [];
+		                arr.push('：00');
+		                return arr;
+		            })(),
+		          }
+		        ]}); 
+		 $("#start_min_update").picker({title:"选择时间",
+		        cols: [
+		          {
+		            textAlign: 'center',
+		            values: (function () {
+		                var arr = [];
+		                for (var i = 0; i <= 23; i++) { arr.push(i < 10 ? '0' + i : i); }
+		                return arr;
+		            })()
+		            
+		          },
+		          {
+		            textAlign: 'center',
+		            values:  (function () {
+		                var arr = [];
+		                arr.push('：00');
+		                return arr;
+		            })(),
+		          }
+		        ]}); 
+		 $("#start_min").picker({title:"选择时间",
+		        cols: [
+		          {
+		            textAlign: 'center',
+		            values: (function () {
+		                var arr = [];
+		                for (var i = 0; i <= 23; i++) { arr.push(i < 10 ? '0' + i : i); }
+		                return arr;
+		            })()
+		            
+		          },
+		          {
+		            textAlign: 'center',
+		            values:  (function () {
+		                var arr = [];
+		                arr.push('：00');
+		                return arr;
+		            })(),
+		          }
+		        ]}); 
+		 $("#start_update").picker({title:"选择时间",
+		        cols: [
+		          {
+		            textAlign: 'center',
+		            values: (function () {
+		                var arr = [];
+		                for (var i = 0; i <= 23; i++) { arr.push(i < 10 ? '0' + i : i); }
+		                return arr;
+		            })()
+		            
+		          },
+		          {
+		            textAlign: 'center',
+		            values:  (function () {
+		                var arr = [];
+		                arr.push('：00');
+		                return arr;
+		            })(),
+		          }
+		        ]}); 
+		 $("#start").picker({title:"选择时间",
+		        cols: [
+		          {
+		            textAlign: 'left',
+		            values: (function () {
+		                var arr = [];
+		                for (var i = 0; i <= 23; i++) { arr.push(i < 10 ? '0' + i : i); }
+		                return arr;
+		            })()
+		            
+		          },
+		          {
+		            textAlign: 'right',
+		            values:  (function () {
+		                var arr = [];
+		                arr.push('：00');
+		                return arr;
+		            })(),
+		          }
+		        ]});  
+		 $("#end").picker({title:"选择时间",
+		        cols: [
+		          {
+		            textAlign: 'center',
+		            values: (function () {
+		                var arr = [];
+		                for (var i = 0; i <= 23; i++) { arr.push(i < 10 ? '0' + i : i); }
+		                return arr;
+		            })()
+		            
+		          },
+		          {
+		            textAlign: 'center',
+		            values:  (function () {
+		                var arr = [];
+		                arr.push('：00');
+		                return arr;
+		            })(),
+		          }
+		        ]}); 
+		 $("#end_update").picker({title:"选择时间",
+		        cols: [
+		          {
+		            textAlign: 'center',
+		            values: (function () {
+		                var arr = [];
+		                for (var i = 0; i <= 23; i++) { arr.push(i < 10 ? '0' + i : i); }
+		                return arr;
+		            })()
+		            
+		          },
+		          {
+		            textAlign: 'center',
+		            values:  (function () {
+		                var arr = [];
+		                arr.push('：00');
+		                return arr;
+		            })(),
+		          }
+		        ]});
+		 $("#end_min").picker({title:"选择时间",
+		        cols: [
+		          {
+		            textAlign: 'center',
+		            values: (function () {
+		                var arr = [];
+		                for (var i = 0; i <= 23; i++) { arr.push(i < 10 ? '0' + i : i); }
+		                return arr;
+		            })()
+		            
+		          },
+		          {
+		            textAlign: 'center',
+		            values:  (function () {
+		                var arr = [];
+		                arr.push('：00');
+		                return arr;
+		            })(),
+		          }
+		        ]}); 
+		 $("#end_min_update").picker({title:"选择时间",
+		        cols: [
+		          {
+		            textAlign: 'center',
+		            values: (function () {
+		                var arr = [];
+		                for (var i = 0; i <= 23; i++) { arr.push(i < 10 ? '0' + i : i); }
+		                return arr;
+		            })()
+		            
+		          },
+		          {
+		            textAlign: 'center',
+		            values:  (function () {
+		                var arr = [];
+		                arr.push('：00');
+		                return arr;
+		            })(),
+		          }
+		        ]}); 
+		 $("#end_mosq_update").picker({title:"选择时间",
+		        cols: [
+		          {
+		            textAlign: 'center',
+		            values: (function () {
+		                var arr = [];
+		                for (var i = 0; i <= 23; i++) { arr.push(i < 10 ? '0' + i : i); }
+		                return arr;
+		            })()
+		            
+		          },
+		          {
+		            textAlign: 'center',
+		            values:  (function () {
+		                var arr = [];
+		                arr.push('：00');
+		                return arr;
+		            })(),
+		          }
+		        ]}); 
+		 $("#end_mosq").picker({title:"选择时间",
+		        cols: [
+		          {
+		            textAlign: 'center',
+		            values: (function () {
+		                var arr = [];
+		                for (var i = 0; i <= 23; i++) { arr.push(i < 10 ? '0' + i : i); }
+		                return arr;
+		            })()
+		            
+		          },
+		          {
+		            textAlign: 'center',
+		            values:  (function () {
+		                var arr = [];
+		                arr.push('：00');
+		                return arr;
+		            })(),
+		          }
+		        ]});
+		 $("#end_lam").picker({title:"选择时间",
+		        cols: [
+		          {
+		            textAlign: 'center',
+		            values: (function () {
+		                var arr = [];
+		                for (var i = 0; i <= 23; i++) { arr.push(i < 10 ? '0' + i : i); }
+		                return arr;
+		            })()
+		            
+		          },
+		          {
+		            textAlign: 'center',
+		            values:  (function () {
+		                var arr = [];
+		                arr.push('：00');
+		                return arr;
+		            })(),
+		          }
+		        ]});
+		 $("#end_update_lam").picker({title:"选择时间",
+		        cols: [
+		          {
+		            textAlign: 'center',
+		            values: (function () {
+		                var arr = [];
+		                for (var i = 0; i <= 23; i++) { arr.push(i < 10 ? '0' + i : i); }
+		                return arr;
+		            })()
+		            
+		          },
+		          {
+		            textAlign: 'center',
+		            values:  (function () {
+		                var arr = [];
+		                arr.push('：00');
+		                return arr;
+		            })(),
+		          }
+		        ]});
+		 $("#end_ven").picker({title:"选择时间",
+		        cols: [
+		          {
+		            textAlign: 'center',
+		            values: (function () {
+		                var arr = [];
+		                for (var i = 0; i <= 23; i++) { arr.push(i < 10 ? '0' + i : i); }
+		                return arr;
+		            })()
+		            
+		          },
+		          {
+		            textAlign: 'center',
+		            values:  (function () {
+		                var arr = [];
+		                arr.push('：00');
+		                return arr;
+		            })(),
+		          }
+		        ]});
+	 }
+	 //驱蚊配置
+	 $scope.queryMosq = function(){
+		 agentRemote.queryMosq().then(function(response){
+			 $scope.mosqList = response.data.data.data;
+		 },function(response){
+		 })
+	 }
+	 $scope.queryConfig = function(){
+		 agentRemote.queryConfig().then(function(response){
+			 $scope.timeQuanTumList = response.data.data.data;
+			 if($scope.timeQuanTumList.length > 0){
+				 $scope.grade = $scope.timeQuanTumList[0].leaveRush == 'true';
+			 }
+		 },function(response){
+		 })
+	 }
+	 $scope.queryInterval = function(){
+		 agentRemote.queryInterval().then(function(response){
+			 $scope.timeInterval = response.data.data.data;
+		 },function(response){
+		 })
+	 }
+	 $scope.queryLam = function(){
+		 agentRemote.queryLam().then(function(response){
+			 console.log(response);
+			 $scope.lamList = response.data.data.data;
+		 },function(response){
+			 
+		 })
+	 }
+	 $scope.queryVen = function(){
+		 agentRemote.queryVen().then(function(response){
+			 $scope.venList = response.data.data.data;
+		 },function(response){
+		 })
+	 }
+	 $scope.modifyMosqById = function(){
+		 if($("#start_mosq_update").val() == ''){
+				$.toptips('开始时间不能为空','warning');return;
+		 }
+		 if($("#end_mosq_update").val() == ''){
+				$.toptips('结束时间不能为空','warning');return;
+		 }
+		 var start_time = $("#start_mosq_update").val().split('：')[0];
+		 var end_time = $("#end_mosq_update").val().split('：')[0];
+		 if(parseInt(start_time) > parseInt(end_time)){
+				$.toptips('开始时间不能大于结束时间','warning');return;
+		 }
+		 var data = {"id":$scope.id,"timeQuanTum":$("#start_mosq_update").val()+'-'+$("#end_mosq_update").val()};
+		 agentRemote.modifyTimeQuanTumById(data).then(function(response){
+				$scope.toReload();
+		 },function(response){
+		 })
+	 }
+	 
+	 $scope.modifyIntervalById = function(){
+		 if($("#start_min_update").val() == ''){
+				$.toptips('开始时间不能为空','warning');return;
+		 }
+		 if($("#end_min_update").val() == ''){
+				$.toptips('结束时间不能为空','warning');return;
+		 }
+		 if($("#minute_update").val() == ''){
+			 $.toptips('时间间隔不能为空','warning');return;
+		 }
+		 var start_time = $("#start_min_update").val().split('：')[0];
+		 var end_time = $("#end_min_update").val().split('：')[0];
+		 if(parseInt(start_time) > parseInt(end_time)){
+				$.toptips('开始时间不能大于结束时间','warning');return;
+		 }
+		 var data = {"id":$scope.id ,"iterval":$("#minute_update").val(),"timeQuanTum":$("#start_min_update").val()+'-'+$("#end_min_update").val()};
+		 agentRemote.modifyIntervalById(data).then(function(response){
+				$scope.toReload();
+		 },function(response){
+		 })
+	 }
+	 
+	 $scope.modifyQuanTumConfig_ven = function(){
+		 if($("#start_update_ven").val() == ''){
+				$.toptips('开始时间不能为空','warning');return;
+		 }
+		 if($("#end_update_ven").val() == ''){
+				$.toptips('结束时间不能为空','warning');return;
+		 }
+		 var start_time = $("#start_update_ven").val().split('：')[0];
+		 var end_time = $("#end_update_ven").val().split('：')[0];
+		 if(parseInt(start_time) > parseInt(end_time)){
+				$.toptips('开始时间不能大于结束时间','warning');return;
+		 }
+		 var data ={"timeQuanTum":$("#start_update_ven").val()+'-'+$("#end_update_ven").val(),"id":$scope.id};
+		 agentRemote.modifyTimeQuanTumById(data).then(function(response){
+				$scope.toReload();
+		 },function(response){
+		 })
+	 }
+	 $scope.modifyQuanTumConfig_lam = function(){
+		 if($("#start_update_lam").val() == ''){
+				$.toptips('开始时间不能为空','warning');return;
+		 }
+		 if($("#end_update_lam").val() == ''){
+				$.toptips('结束时间不能为空','warning');return;
+		 }
+		 if($("#minute_lam_update").val() == ''){
+			 $.toptips('时间间隔不能为空','warning');return;
+		 }
+		 var start_time = $("#start_update_lam").val().split('：')[0];
+		 var end_time = $("#end_update_lam").val().split('：')[0];
+		 if(parseInt(start_time) > parseInt(end_time)){
+				$.toptips('开始时间不能大于结束时间','warning');return;
+		 }
+		 var data ={"timeQuanTum":$("#start_update_lam").val()+'-'+$("#end_update_lam").val(),"iterval":$("#minute_lam_update").val(),"id":$scope.id};
+		 agentRemote.modifyIntervalById(data).then(function(response){
+				$scope.toReload();
+		 },function(response){
+		 })
+	 }
+	 $scope.modifyQuanTumConfig = function(){
+		 if($("#start_update").val() == ''){
+				$.toptips('开始时间不能为空','warning');return;
+		 }
+		 if($("#end_update").val() == ''){
+				$.toptips('结束时间不能为空','warning');return;
+		 }
+		 var start_time = $("#start_update").val().split('：')[0];
+		 var end_time = $("#end_update").val().split('：')[0];
+		 if(parseInt(start_time) > parseInt(end_time)){
+				$.toptips('开始时间不能大于结束时间','warning');return;
+		 }
+		 var data ={"timeQuanTum":$("#start_update").val()+'-'+$("#end_update").val(),"id":$scope.id};
+		 agentRemote.modifyTimeQuanTumById(data).then(function(response){
+				$scope.toReload();
+		 },function(response){
+		 })
+	 }
+	 
+	 //配置冲水时间段
+	 $scope.timeQuanTumConfig_min = function(){
+		if($("#start_min").val() == ''){
+			$.toptips('开始时间不能为空','warning');return;
+		}
+		if($("#end_min").val() == ''){
+			$.toptips('结束时间不能为空','warning');return;
+		}
+		if($("#minute").val() == ''){
+			 $.toptips('时间间隔不能为空','warning');return;
+		 }
+		var start_time = $("#start_min").val().split('：')[0];
+		 var end_time = $("#end_min").val().split('：')[0];
+		 if(parseInt(start_time) > parseInt(end_time)){
+				$.toptips('开始时间不能大于结束时间','warning');return;
+		 }
+		var data ={"startTime":$("#start_min").val(),"endTime":$("#end_min").val(),"interval":$("#minute").val(),"configStatus":'2'};
+		agentRemote.addTimeQuantumConfig(data).then(function(response){
+			$scope.toReload();
+		},function(response){
+		})
+	 }
+	 
+	 //驱蚊时间新增
+	 $scope.mosqTumConfig = function(){
+		 if($("#start_mosq").val() == ''){
+				$.toptips('开始时间不能为空','warning');return;
+		 }
+		 if($("#end_mosq").val() == ''){
+			$.toptips('结束时间不能为空','warning');return;
+		 }
+		 var start_time = $("#start_mosq").val().split('：')[0];
+		 var end_time = $("#end_mosq").val().split('：')[0];
+		 if(parseInt(start_time) > parseInt(end_time)){
+				$.toptips('开始时间不能大于结束时间','warning');return;
+		 }
+		 var data ={"startTime":$("#start_mosq").val(),"endTime":$("#end_mosq").val(),"configStatus":"3"};
+		 agentRemote.addTimeQuantumConfig(data).then(function(response){
+				$scope.toReload();
+		 },function(response){
+		 })
+	 }
+	 $scope.timeQuanTumConfig_ven = function(flag){
+		 if($("#start_ven").val() == ''){
+				$.toptips('开始时间不能为空','warning');return;
+		  }
+		 if($("#end_ven").val() == ''){
+				$.toptips('结束时间不能为空','warning');return;
+		  }
+		 var start_time = $("#start_ven").val().split('：')[0];
+		  var end_time = $("#end_ven").val().split('：')[0];
+		  if(parseInt(start_time) > parseInt(end_time)){
+				$.toptips('开始时间不能大于结束时间','warning');return;
+		  }
+		  var data ={"startTime":$("#start_ven").val(),"endTime":$("#end_ven").val(),"leaveRush":$scope.grade,"configStatus":'5'};
+			agentRemote.addTimeQuantumConfig(data).then(function(response){
+				$scope.toReload();
+			},function(response){
+			})
+	 }
+	 //设置灯光感应时间
+	 $scope.timeQuanTumConfig_lam = function(flag){
+		 if($("#start_lam").val() == ''){
+				$.toptips('开始时间不能为空','warning');return;
+		  }
+		 if($("#end_lam").val() == ''){
+				$.toptips('结束时间不能为空','warning');return;
+		  }
+		 if($("#minute_lam").val() == ''){
+			 $.toptips('时间间隔不能为空','warning');return;
+		 }
+		  var start_time = $("#start_lam").val().split('：')[0];
+		  var end_time = $("#end_lam").val().split('：')[0];
+		  if(parseInt(start_time) > parseInt(end_time)){
+				$.toptips('开始时间不能大于结束时间','warning');return;
+		  }
+		  var data ={"startTime":$("#start_lam").val(),"endTime":$("#end_lam").val(),"interval":$("#minute_lam").val(),"configStatus":'4'};
+			agentRemote.addTimeQuantumConfig(data).then(function(response){
+				$scope.toReload();
+			},function(response){
+			})
+	 }
+	 //配置冲水时间段
+	 $scope.timeQuanTumConfig = function(flag){
+		if($("#start").val() == ''){
+			$.toptips('开始时间不能为空','warning');return;
+		}
+		if($("#end").val() == ''){
+			$.toptips('结束时间不能为空','warning');return;
+		}
+		var start_time = $("#start").val().split('：')[0];
+		var end_time = $("#end").val().split('：')[0];
+		if(parseInt(start_time) > parseInt(end_time)){
+			$.toptips('开始时间不能大于结束时间','warning');return;
+		}
+		var data ={"startTime":$("#start").val(),"endTime":$("#end").val(),"leaveRush":$scope.grade,"configStatus":'1'};
+		agentRemote.addTimeQuantumConfig(data).then(function(response){
+			$scope.toReload();
+		},function(response){
+		})
+	 }
+	 $scope.addToile = function(){
+		 if($("#tower").val()==""){
+			 $.toptips('请输入教学楼名称','warning');return;
+		 }
+		 if($("#tower_floor").val()==""){
+			 $.toptips('请输入楼层','warning');return;
+		 }
+		 if($("#toile_name").val()==""){
+			 $.toptips('请输入卫生间名称','warning');return;
+		 }
+		 
+	 }
+	 $scope.add = function(){
+		 $("#addToile").popup('open');
+		 $("#big_urinal").val(0);
+		 $("#litter_urinal").val(0);
+		 /* $.prompt("新建卫生间", "", function(text) {
+			 var data = {"toiletName":text};
+	          agentRemote.saveToilet(data).then(function(response){
+	        	  $.toast("操作成功");
+	        	  $scope.queryToilet()
+	          },function(response){
+	          })
+	        }, function() {
+	          //取消操作
+	        }); */
+	 }
+	 $scope.toBindExplain = function(name,id){
+         location.href="/sp/mobile/Skip/toBindExplain?params="+name+"&id="+id;
+     }
+	 $scope.toReload = function(){
+		 location.href="/sp/mobile/Skip/toScConfig?time="+((new Date()).getTime());
+	 }
+	 $scope.queryMosq();
+	 $scope.queryConfig();
+	 $scope.queryToilet();
+	 $scope.timePicker();
+	 $scope.timeMinute();
+	 $scope.queryInterval();
+	 $scope.queryLam();
+	 $scope.queryVen();
+	 $scope.downloadConfig = function(){
+		 var configInfo = {};
+		 configInfo.controlCode = "123456";
+		 configInfo.reactionData = [{
+		 		startTime: '10:00',
+		 		endTime: '13:00',
+		 		status: 1
+		 	}, {
+		 		startTime: '02:00',
+		 		endTime: '16:00',
+		 		status: 1
+		 	}];
+		 configInfo.leaveRush = 0;
+		 configInfo.intervalData = [{
+	         startTime: '10:00',
+	         endTime: '13:00',
+	         status: 2,
+	         interval: 5
+	     }, {
+	         startTime: '11:00',
+	         endTime: '14:00',
+	         status: 2,
+	         interval: 10
+	     }];
+		 configInfo.mosqData= [{
+	         startTime: '10:00',
+	         endTime: '13:00',
+	         status: 3
+	     }, {
+	         startTime: '11:00',
+	         endTime: '14:00',
+	         status: 3
+	     }];
+		 configInfo.lightData = [{
+	         startTime: '10:00',
+	         endTime: '13:00',
+	         status: 4,
+	         interval: 5
+	     
+	     }, {
+	         startTime: '12:00',
+	         endTime: '16:00',
+	         status: 4,
+	         interval: 5
+	     }];
+		 configInfo.fanData = [{
+	         startTime: '10:00',
+	         endTime: '13:00',
+	         status: 5
+	     }, {
+	         startTime: '12:00',
+	         endTime: '16:00',
+	         status: 5
+	     }];
+		 $.ajax({
+			 type:'post',
+			 contentType: 'application/json',
+			 url:'/watersaving/api/toilet/modifyFeelingConfig',
+			 data:JSON.stringify(configInfo),
+			 success:function(data){
+				 alert("downloadConfi:" + data);
+				 data = JSON.parse(data);
+				 if(data.code == '0'){
+		    		 $.toast(data.msg);
+		    	}else{
+		    		$.toast(data.msg, "cancel");
+		    		writeLog('/toilet/flushOpenCmd',data.msg,data.code)
+		    	}
+			 }
+		 });
+	 }
+	}]);
+</script>
+</head>
+<body ng-cloak ng-controller="MainController" ontouchstart style="background-color: #f8f8f8;">
+<div class="weui_cells_title" style="margin:15px;">
+	<div>智能公厕信息维护</div>
+	<div class="weui_cell_ft">
+	   <a href="javascript:;" class="weui_btn weui_btn_mini weui_btn_primary " ng-click="downloadConfig()"  >下发配置</a>
+	</div>
+</div>
+<div class="weui_cells">
+	<div class="weui_cell">
+	      <div class="weui_cell_bd weui_cell_primary">
+	          <p>卫生间维护</p>
+	      </div>
+	      <div class="weui_cell_ft">
+	      	<a href="javascript:;" class="weui_btn weui_btn_mini weui_btn_primary " ng-click="add()"  >新增</a>
+	      </div>
+	 </div>
+	<div class="weui_cell" ng-repeat="toilet in redactToilet" on-hold="onHold('{{toilet.id}}')">
+		<div class="weui_cell_bd weui_cell_primary" >
+	         <p  style="font-size:18px;">{{toilet.toiletName}}</p>
+	     </div>
+	     <div class="weui_cell_bd" style="margin-right:40%;" ng-if="toilet.status == 1"><span class='f-green'>运行</span></div>
+	     <div class="weui_cell_bd" style="margin-right:40%;" ng-if="toilet.status == 2"><span class='f-gray'>冲水</span></div>
+	     <div class="weui_cell_bd" style="margin-right:40%;" ng-if="toilet.status == 3"><span class='f-red'>异常</span></div>
+	     <div class="weui_cell_bd" style="margin-right:40%;" ng-if="toilet.status == 4"><span class='f-red'>离线</span></div>
+	     <div class="weui_cell_bd" style="margin-right:25%;" ng-if="toilet.status == 5 && toilet.isControl == false||toilet.isLiquid==false||toilet.isMosq==false||toilet.isRadiotube==false||toilet.isSensor==false||toilet.isWifi==false||toilet.isLight == false || toilet.isFan == false " ng-click="toBindExplain('{{toilet.toiletName}}','{{toilet.id}}')"  ><span class='f-red'>尚未关联设备</span></div>
+	     <div class="weui_cell_bd" style="margin-right:20%;" ng-if="toilet.status == 5 && toilet.isControl == true&&toilet.isLiquid==true&&toilet.isMosq==true&&toilet.isRadiotube==true&&toilet.isSensor==true&&toilet.isWifi==true&&toilet.isLight == true&&toilet.isFan == true" ng-click="toBindExplain('{{toilet.toiletName}}','{{toilet.id}}')"  ><span class='f-orange'>关联设备,未链接tcp</span></div>
+	</div>
+</div>
+<!--  -->
+<div class="weui_cells_title" style="margin:15px;">
+<div>冲水规则维护</div>
+</div>
+<div class="weui_cells">         
+  <div class="weui_cell">
+      <div class="weui_cell_bd weui_cell_primary">
+          <p>1.感应时段设置</p>
+      </div>
+      <div class="weui_cell_ft">
+      	<a href="javascript:;" class="weui_btn weui_btn_mini weui_btn_primary  open-popup" data-target="#half"  >新增</a>
+      </div>
+  </div> 
+  <div class="weui_cell weui_cell_switch">
+		 <div class="weui_cell_hd weui_cell_primary">离开冲水</div>
+		 <div class="weui_cell_ft">
+		     <input class="weui_switch" type="checkbox" ng-change="modifyLeaveRush()" ng-model="grade"/>
+		 </div>
+	</div>
+  <div class="weui_cell " ng-click="clickAction('{{quanTum.id}}','1')" ng-repeat="quanTum in timeQuanTumList">
+      <div class="weui_cell_bd weui_cell_primary">
+          <p>{{quanTum.timeQuantum}}</p>
+      </div>
+  </div>
+</div>   
+<!--  -->
+<div class="weui_cells_title" >
+<div>冲水间隔设置</div>
+</div>
+<div class="weui_cells" >  
+ <div class="weui_cell">
+      <div class="weui_cell_bd weui_cell_primary">
+          <p>2.冲水间隔设置</p>
+      </div>
+      <div class="weui_cell_ft">
+      	<a href="javascript:;" class="weui_btn weui_btn_mini weui_btn_primary open-popup" data-target="#time_min" >新增</a>
+      </div>
+  </div>
+   <div class="weui_cell " ng-click="clickAction('{{interval.id}}','2')" ng-repeat="interval in timeInterval">
+      <div class="weui_cell_bd weui_cell_primary">
+          <p>{{interval.timeQuantum}}间隔 {{interval.interval}} 分钟冲水</p>
+      </div>
+  </div>
+</div>
+ <!--  -->
+<div class="weui_cells_title" >
+<div>驱蚊时间设置</div>
+</div>
+<div class="weui_cells" style="margin-bottom:20px;">         
+  <div class="weui_cell">
+      <div class="weui_cell_bd weui_cell_primary">
+          <p>3.驱蚊除味时段设置</p>
+      </div>
+      <div class="weui_cell_ft">
+      	<a href="javascript:;" class="weui_btn weui_btn_mini weui_btn_primary  open-popup" data-target="#mosq"  >新增</a>
+      </div>
+  </div> 
+  <div class="weui_cell " ng-click="clickAction('{{mosq.id}}','3')" ng-repeat="mosq in mosqList">
+      <div class="weui_cell_bd weui_cell_primary">
+          <p>{{mosq.timeQuantum}}</p>
+      </div>
+  </div>
+</div>  
+<!--  -->
+<div class="weui_cells_title" >
+<div>灯光感应时间设置</div>
+</div>
+<div class="weui_cells" style="margin-bottom:20px;">         
+  <div class="weui_cell">
+      <div class="weui_cell_bd weui_cell_primary">
+          <p>4.灯光感应时间设置</p>
+      </div>
+      <div class="weui_cell_ft">
+      	<a href="javascript:;" class="weui_btn weui_btn_mini weui_btn_primary  open-popup" data-target="#lam"  >新增</a>
+      </div>
+  </div> 
+  <div class="weui_cell " ng-click="clickAction('{{lam.id}}','4')"  ng-repeat="lam in lamList">
+      <div class="weui_cell_bd weui_cell_primary">
+          <p>{{lam.timeQuantum}}灯亮时长{{lam.interval}}分钟</p>
+      </div>
+  </div>
+</div> 
+<!--  -->
+<div class="weui_cells_title" >
+<div>通风时间设置</div>
+</div>
+<div class="weui_cells" style="margin-bottom:20px;">         
+  <div class="weui_cell">
+      <div class="weui_cell_bd weui_cell_primary">
+          <p>5.通风时间设置</p>
+      </div>
+      <div class="weui_cell_ft">
+      	<a href="javascript:;" class="weui_btn weui_btn_mini weui_btn_primary  open-popup" data-target="#ven"  >新增</a>
+      </div>
+  </div> 
+  <div class="weui_cell " ng-click="clickAction('{{ven.id}}','5')"   ng-repeat="ven in venList" >
+      <div class="weui_cell_bd weui_cell_primary">
+          <p>{{ven.timeQuantum}}</p>
+      </div>
+  </div>
+</div>
+<!-- 新增厕所 -->
+<div id="addToile" class='weui-popup__container popup-bottom'>
+ <div class="weui-popup__overlay"></div>
+      <div class="weui-popup__modal">
+        <div class="toolbar">
+          <div class="toolbar-inner">
+            <a href="javascript:;" class="picker-button close-popup" ng-click="addToile()">确定</a>
+            <h1 class="title">卫生间新增</h1>
+          </div>
+        </div>
+        <div class="modal-content">
+          <div class="weui-grids">
+          	<div class="weui_cells weui_cells_form ">   
+		            <div class="weui_cell">
+		                <div class="weui_cell_hd"><label class="weui_label">楼</label></div>
+		                <div class="weui_cell_bd weui_cell_primary">
+		                    <input id="tower" class="weui_input" type="text" placeholder="请输入教学楼名称"/>
+		                </div>
+            		</div>
+            		<div class="weui_cell">
+		                <div class="weui_cell_hd"><label class="weui_label">楼层</label></div>
+		                <div class="weui_cell_bd weui_cell_primary">
+		                    <input id="tower_floor" class="weui_input" type="text" placeholder="请输入楼层"/>
+		                </div>
+            		</div>
+            		<div class="weui_cell">
+		                <div class="weui_cell_hd"><label class="weui_label">名称</label></div>
+		                <div class="weui_cell_bd weui_cell_primary">
+		                    <input id="toile_name" class="weui_input" type="text" placeholder="请输入卫生间名称"/>
+		                </div>
+            		</div>
+            		 <div class="weui_cell">
+		                <div class="weui_cell_hd"><label class="weui_label">大便池数量</label></div>
+		                <div class="weui_cell_bd weui_cell_primary">
+		                    <input id="big_urinal" class="weui_input" type="number" pattern="[0-9]*"    placeholder="请输入大便池数量"/>
+		                </div>
+		            </div>
+		            <div class="weui_cell">
+		                <div class="weui_cell_hd"><label class="weui_label">小便池数量</label></div>
+		                <div class="weui_cell_bd weui_cell_primary">
+		                    <input id="litter_urinal" class="weui_input" type="number" pattern="[0-9]*"   placeholder="请输入小便池数量"/>
+		                </div>
+		            </div>
+ 			</div>
+          </div>
+        </div>
+      </div>
+</div>
+<!-- 通风时间设置 update-->
+<div id="ven_update" class='weui-popup__container popup-bottom'>
+      <div class="weui-popup__overlay"></div>
+      <div class="weui-popup__modal">
+        <div class="toolbar">
+          <div class="toolbar-inner">
+            <a href="javascript:;" class="picker-button close-popup" ng-click="modifyQuanTumConfig_ven()">确定</a>
+            <h1 class="title">设置时段</h1>
+          </div>
+        </div>
+        <div class="modal-content">
+          <div class="weui-grids">
+          	<div class="weui_cells weui_cells_form ">   
+		           <div class="weui-cell">
+				        <div class="weui-cell__hd"><label for="time" class="">开始时间：</label></div>
+				        <div class="weui-cell__bd">
+				          <input class="weui-input" id="start_update_ven" type="text" value="">
+				        </div>
+			       </div>
+			       <div class="weui-cell">
+				        <div class="weui-cell__hd"><label for="time" class="">结束时间：</label></div>
+				        <div class="weui-cell__bd">
+				          <input class="weui-input" id="end_update_ven" type="text" value="">
+				        </div>
+			       </div>
+ 			</div>
+          </div>
+        </div>
+      </div>
+</div> 
+<!-- 通风时间设置 add-->
+<div id="ven" class='weui-popup__container popup-bottom'>
+      <div class="weui-popup__overlay"></div>
+      <div class="weui-popup__modal">
+        <div class="toolbar">
+          <div class="toolbar-inner">
+            <a href="javascript:;" class="picker-button close-popup" ng-click="timeQuanTumConfig_ven()">确定</a>
+            <h1 class="title">设置时段</h1>
+          </div>
+        </div>
+        <div class="modal-content">
+          <div class="weui-grids">
+          	<div class="weui_cells weui_cells_form ">   
+		           <div class="weui-cell">
+				        <div class="weui-cell__hd"><label for="time" class="">开始时间：</label></div>
+				        <div class="weui-cell__bd">
+				          <input class="weui-input" id="start_ven" type="text" value="">
+				        </div>
+			       </div>
+			       <div class="weui-cell">
+				        <div class="weui-cell__hd"><label for="time" class="">结束时间：</label></div>
+				        <div class="weui-cell__bd">
+				          <input class="weui-input" id="end_ven" type="text" value="">
+				        </div>
+			       </div>
+ 			</div>
+          </div>
+        </div>
+      </div>
+</div> 
+<!-- 灯光感应设置 update -->
+<div id="lam_update" class='weui-popup__container popup-bottom'>
+      <div class="weui-popup__overlay"></div>
+      <div class="weui-popup__modal">
+        <div class="toolbar">
+          <div class="toolbar-inner">
+            <a href="javascript:;" class="picker-button close-popup" ng-click="modifyQuanTumConfig_lam()">修改</a>
+            <h1 class="title">设置时段</h1>
+          </div>
+        </div>
+        <div class="modal-content">
+          <div class="weui-grids">
+          	<div class="weui_cells weui_cells_form ">   
+		           <div class="weui-cell">
+				        <div class="weui-cell__hd"><label for="time" class="">开始时间：</label></div>
+				        <div class="weui-cell__bd">
+				          <input class="weui-input" id="start_update_lam" type="text" value="">
+				        </div>
+			       </div>
+			       <div class="weui-cell">
+				        <div class="weui-cell__hd"><label for="time" class="">结束时间：</label></div>
+				        <div class="weui-cell__bd">
+				          <input class="weui-input" id="end_update_lam" type="text" value="">
+				        </div>
+			       </div>
+			       <div class="weui-cell">
+				        <div class="weui-cell__hd"><label for="time" class="">间隔时间：</label></div>
+				        <div class="weui-cell__bd">
+				          <input class="weui-input" id="minute_lam_update" type="text" value="">
+				        </div>
+			       </div>
+ 			</div>
+          </div>
+        </div>
+      </div>
+</div> 
+<!-- 灯光感应设置 add-->
+ <div id="lam" class='weui-popup__container popup-bottom'>
+      <div class="weui-popup__overlay"></div>
+      <div class="weui-popup__modal">
+        <div class="toolbar">
+          <div class="toolbar-inner">
+            <a href="javascript:;" class="picker-button close-popup" ng-click="timeQuanTumConfig_lam()">确定</a>
+            <h1 class="title">设置时段</h1>
+          </div>
+        </div>
+        <div class="modal-content">
+          <div class="weui-grids">
+          	<div class="weui_cells weui_cells_form ">   
+		           <div class="weui-cell">
+				        <div class="weui-cell__hd"><label for="time" class="">开始时间：</label></div>
+				        <div class="weui-cell__bd">
+				          <input class="weui-input" id="start_lam" type="text" value="">
+				        </div>
+			       </div>
+			       <div class="weui-cell">
+				        <div class="weui-cell__hd"><label for="time" class="">结束时间：</label></div>
+				        <div class="weui-cell__bd">
+				          <input class="weui-input" id="end_lam" type="text" value="">
+				        </div>
+			       </div>
+			        <div class="weui-cell">
+				        <div class="weui-cell__hd"><label for="time" class="">间隔时间：</label></div>
+				        <div class="weui-cell__bd">
+				          <input class="weui-input" id="minute_lam" type="text" value="">
+				        </div>
+			       </div>
+ 			</div>
+          </div>
+        </div>
+      </div>
+</div> 
+<!-- 间隔日期 add -->
+ <div id="half" class='weui-popup__container popup-bottom'>
+      <div class="weui-popup__overlay"></div>
+      <div class="weui-popup__modal">
+        <div class="toolbar">
+          <div class="toolbar-inner">
+            <a href="javascript:;" class="picker-button close-popup" ng-click="timeQuanTumConfig()">确定</a>
+            <h1 class="title">设置时段</h1>
+          </div>
+        </div>
+        <div class="modal-content">
+          <div class="weui-grids">
+          	<div class="weui_cells weui_cells_form ">   
+		           <div class="weui-cell">
+				        <div class="weui-cell__hd"><label for="time" class="">开始时间：</label></div>
+				        <div class="weui-cell__bd">
+				          <input class="weui-input" id="start" type="text" value="">
+				        </div>
+			       </div>
+			       <div class="weui-cell">
+				        <div class="weui-cell__hd"><label for="time" class="">结束时间：</label></div>
+				        <div class="weui-cell__bd">
+				          <input class="weui-input" id="end" type="text" value="">
+				        </div>
+			       </div>
+ 			</div>
+          </div>
+        </div>
+      </div>
+</div> 
+<!-- 间隔日期 update -->
+ <div id="half_update" class='weui-popup__container popup-bottom'>
+      <div class="weui-popup__overlay"></div>
+      <div class="weui-popup__modal">
+        <div class="toolbar">
+          <div class="toolbar-inner">
+            <a href="javascript:;" class="picker-button close-popup" ng-click="modifyQuanTumConfig()">修改</a>
+            <h1 class="title">设置时段</h1>
+          </div>
+        </div>
+        <div class="modal-content">
+          <div class="weui-grids">
+          	<div class="weui_cells weui_cells_form ">   
+		           <div class="weui-cell">
+				        <div class="weui-cell__hd"><label for="time" class="">开始时间：</label></div>
+				        <div class="weui-cell__bd">
+				          <input class="weui-input" id="start_update" type="text" value="">
+				        </div>
+			       </div>
+			       <div class="weui-cell">
+				        <div class="weui-cell__hd"><label for="time" class="">结束时间：</label></div>
+				        <div class="weui-cell__bd">
+				          <input class="weui-input" id="end_update" type="text" value="">
+				        </div>
+			       </div>
+ 			</div>
+          </div>
+        </div>
+      </div>
+</div> 
+<!-- 间隔时间 add --> 
+<div id="time_min" class='weui-popup__container popup-bottom'>
+      <div class="weui-popup__overlay"></div>
+      <div class="weui-popup__modal">
+        <div class="toolbar">
+          <div class="toolbar-inner">
+            <a href="javascript:;" class="picker-button close-popup" ng-click="timeQuanTumConfig_min()"  >确定</a>
+            <h1 class="title">设置时段</h1>
+          </div>
+        </div>
+        <div class="modal-content">
+          <div class="weui-grids">
+          	<div class="weui_cells weui_cells_form ">   
+	               <div class="weui-cell">
+				        <div class="weui-cell__hd"><label for="time" class="">开始时间：</label></div>
+				        <div class="weui-cell__bd">
+				          <input class="weui-input" id="start_min" type="text" value="">
+				        </div>
+			       </div>
+			       <div class="weui-cell">
+				        <div class="weui-cell__hd"><label for="time" class="">结束时间：</label></div>
+				        <div class="weui-cell__bd">
+				          <input class="weui-input" id="end_min" type="text" value="">
+				        </div>
+			       </div>
+		           <div class="weui-cell">
+				        <div class="weui-cell__hd"><label for="time" class="">间隔时间：</label></div>
+				        <div class="weui-cell__bd">
+				          <input class="weui-input" id="minute" type="text" value="">
+				        </div>
+			       </div>
+ 			</div>
+          </div>
+        </div>
+      </div>
+</div>
+<!-- 间隔时间 update --> 
+<div id="time_min_update" class='weui-popup__container popup-bottom'>
+      <div class="weui-popup__overlay"></div>
+      <div class="weui-popup__modal">
+        <div class="toolbar">
+          <div class="toolbar-inner">
+            <a href="javascript:;" class="picker-button close-popup" ng-click="modifyIntervalById()">修改</a>
+            <h1 class="title">设置时段</h1>
+          </div>
+        </div>
+        <div class="modal-content">
+          <div class="weui-grids">
+          	<div class="weui_cells weui_cells_form ">   
+		           <!-- <div class="weui_cell">
+		                <div class="weui_cell_hd"><label for="" class="weui_label">感应时间段:</label></div>
+		                <div class="weui_cell_bd weui_cell_primary">
+		                    <input class="weui_input" type="text" value="" id='_timeQuanTum_update'/>
+		                </div>
+	               </div> --> 
+	               <div class="weui-cell">
+				        <div class="weui-cell__hd"><label for="time" class="">开始时间：</label></div>
+				        <div class="weui-cell__bd">
+				          <input class="weui-input" id="start_min_update" type="text" value="">
+				        </div>
+			       </div>
+			       <div class="weui-cell">
+				        <div class="weui-cell__hd"><label for="time" class="">结束时间：</label></div>
+				        <div class="weui-cell__bd">
+				          <input class="weui-input" id="end_min_update" type="text" value="">
+				        </div>
+			       </div>
+		           <div class="weui-cell">
+				        <div class="weui-cell__hd"><label for="time" class="">间隔时间：</label></div>
+				        <div class="weui-cell__bd">
+				          <input class="weui-input" id="minute_update" type="text" value="">
+				        </div>
+			       </div>
+ 			</div>
+          </div>
+        </div>
+      </div>
+</div>
+<!-- 驱蚊 add -->
+<div id="mosq" class='weui-popup__container popup-bottom'>
+      <div class="weui-popup__overlay"></div>
+      <div class="weui-popup__modal">
+        <div class="toolbar">
+          <div class="toolbar-inner">
+            <a href="javascript:;" class="picker-button close-popup" ng-click="mosqTumConfig()">确定</a>
+            <h1 class="title">设置时段</h1>
+          </div>
+        </div>
+        <div class="modal-content">
+          <div class="weui-grids">
+          	<div class="weui_cells weui_cells_form ">   
+		           <div class="weui-cell">
+				        <div class="weui-cell__hd"><label for="time" class="">开始时间：</label></div>
+				        <div class="weui-cell__bd">
+				          <input class="weui-input" id="start_mosq" type="text" value="">
+				        </div>
+			       </div>
+			       <div class="weui-cell">
+				        <div class="weui-cell__hd"><label for="time" class="">结束时间：</label></div>
+				        <div class="weui-cell__bd">
+				          <input class="weui-input" id="end_mosq" type="text" value="">
+				        </div>
+			       </div>
+ 			</div>
+          </div>
+        </div>
+      </div>
+</div> 
+<!-- 驱蚊update -->
+<div id="mosq_update" class='weui-popup__container popup-bottom'>
+      <div class="weui-popup__overlay"></div>
+      <div class="weui-popup__modal">
+        <div class="toolbar">
+          <div class="toolbar-inner">
+            <a href="javascript:;" class="picker-button close-popup" ng-click="modifyMosqById()">修改</a>
+            <h1 class="title">设置时段</h1>
+          </div>
+        </div>
+        <div class="modal-content">
+          <div class="weui-grids">
+          	<div class="weui_cells weui_cells_form ">   
+	               <div class="weui-cell">
+				        <div class="weui-cell__hd"><label for="time" class="">开始时间：</label></div>
+				        <div class="weui-cell__bd">
+				          <input class="weui-input" id="start_mosq_update" type="text" value="">
+				        </div>
+			       </div>
+			       <div class="weui-cell">
+				        <div class="weui-cell__hd"><label for="time" class="">结束时间：</label></div>
+				        <div class="weui-cell__bd">
+				          <input class="weui-input" id="end_mosq_update" type="text" value="">
+				        </div>
+			       </div>
+ 			</div>
+          </div>
+        </div>
+      </div>
+</div>
+</body>
+</html>
