@@ -1106,67 +1106,45 @@ angular.module('app', ['ngTouch','ionic'])
 	 $scope.queryInterval();
 	 $scope.queryLam();
 	 $scope.queryVen();
+	 //把web数组中的格式转换成tcp需要的格式
+	 $scope.toConfigData = function(webData,tcpData,status,interval){
+		 for (var i = 0; i < webData.length;i++){
+			 var json = {};
+			 json.startEndTime = webData[i].timeQuantum;
+			 json.status=status;
+			 if (interval){
+			 	json.interval=webData[i].interval;
+			 }
+			 tcpData.push(json);
+		 }
+	 }
 	 $scope.downloadConfig = function(){
 		 var configInfo = {};
 		 configInfo.controlCode = "123456";
-		 configInfo.reactionData = [{
-		 		startTime: '10:00',
-		 		endTime: '13:00',
-		 		status: 1
-		 	}, {
-		 		startTime: '02:00',
-		 		endTime: '16:00',
-		 		status: 1
-		 	}];
-		 configInfo.leaveRush = 0;
-		 configInfo.intervalData = [{
-	         startTime: '10:00',
-	         endTime: '13:00',
-	         status: 2,
-	         interval: 5
-	     }, {
-	         startTime: '11:00',
-	         endTime: '14:00',
-	         status: 2,
-	         interval: 10
-	     }];
-		 configInfo.mosqData= [{
-	         startTime: '10:00',
-	         endTime: '13:00',
-	         status: 3
-	     }, {
-	         startTime: '11:00',
-	         endTime: '14:00',
-	         status: 3
-	     }];
-		 configInfo.lightData = [{
-	         startTime: '10:00',
-	         endTime: '13:00',
-	         status: 4,
-	         interval: 5
-	     
-	     }, {
-	         startTime: '12:00',
-	         endTime: '16:00',
-	         status: 4,
-	         interval: 5
-	     }];
-		 configInfo.fanData = [{
-	         startTime: '10:00',
-	         endTime: '13:00',
-	         status: 5
-	     }, {
-	         startTime: '12:00',
-	         endTime: '16:00',
-	         status: 5
-	     }];
+		 configInfo.configData={};
+		 //感应时间段
+		 configInfo.configData.reactionData = [];
+		 $scope.toConfigData($scope.timeQuanTumList,configInfo.configData.reactionData,1,false);
+		 //离开冲水开关
+		 configInfo.configData.leaveRush = ($scope.grade)?"1":"0";
+		 //冲水间隔
+		 configInfo.configData.intervalData = [];
+		 $scope.toConfigData($scope.timeInterval,configInfo.configData.intervalData,2,true);
+		 //驱蚊
+		 configInfo.configData.mosqData= [];
+		 $scope.toConfigData($scope.mosqList,configInfo.configData.mosqData,3,false);
+		 //灯光
+		 configInfo.configData.lightData = [];
+		 $scope.toConfigData($scope.lamList,configInfo.configData.lightData,4,true);
+		 //风扇
+		 configInfo.configData.fanData = [];
+		 $scope.toConfigData($scope.venList,configInfo.configData.fanData,5,true);
 		 $.ajax({
 			 type:'post',
 			 contentType: 'application/json',
 			 url:'/watersaving/api/toilet/modifyFeelingConfig',
 			 data:JSON.stringify(configInfo),
 			 success:function(data){
-				 alert("downloadConfi:" + data);
 				 data = JSON.parse(data);
 				 if(data.code == '0'){
 		    		 $.toast(data.msg);
@@ -1178,14 +1156,19 @@ angular.module('app', ['ngTouch','ionic'])
 		 });
 	 }
 	}]);
+	
 </script>
 </head>
 <body ng-cloak ng-controller="MainController" ontouchstart style="background-color: #f8f8f8;">
 <div class="weui_cells_title" style="margin:15px;">
-	<div>智能公厕信息维护</div>
-	<div class="weui_cell_ft">
-	   <a href="javascript:;" class="weui_btn weui_btn_mini weui_btn_primary " ng-click="downloadConfig()"  >下发配置</a>
-	</div>
+	<div class="weui_cell">
+	      <div class="weui_cell_bd weui_cell_primary">
+	          <p>${wxUser.xjlScSChool.schoolName}</p>
+	      </div>
+	      <div class="weui_cell_ft">
+	      	<a href="javascript:;" class="weui_btn weui_btn_mini weui_btn_primary " ng-click="downloadConfig()"  >下发配置</a>
+	      </div>
+	 </div>
 </div>
 <div class="weui_cells">
 	<div class="weui_cell">

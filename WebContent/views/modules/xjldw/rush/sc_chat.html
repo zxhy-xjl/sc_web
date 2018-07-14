@@ -178,7 +178,7 @@ angular.module('app', ['ngTouch'])
 				 url:'/watersaving/api/flush/statisticsflush',
 				 data:{},
 				 success:function(data){
-					 alert("冲水量数据概述:" + data);
+					 data = JSON.parse(data);
 					 if(data.length >0){
 						 if(data[0].maxTime.length ==0){
 							 writeLog('/flush/statisticsflush','最大用水量日期为空','000');
@@ -211,7 +211,7 @@ angular.module('app', ['ngTouch'])
 				 url:'/watersaving/api/flush/statTimesDay',
 				 data:{},
 				 success:function(data){
-					 alert("冲水量:" + data);
+					 data = JSON.parse(data);
 					 if(data.length > 0){
 						  var value = queryMaxValue(data)
 						  formatter(data);
@@ -300,7 +300,7 @@ angular.module('app', ['ngTouch'])
 				 url:'/watersaving/api/flush/statMonth',
 				 data:{},
 				 success:function(data){
-					 alert("初始化月数据:" + data);
+					 data = JSON.parse(data);
 					 if(data.length > 0){
 						 formatter(data);
 						 data = formatte_Month(data);
@@ -334,7 +334,7 @@ angular.module('app', ['ngTouch'])
 				 url:'/watersaving/api/flush/statDay',
 				 data:{},
 				 success:function(data){
-					 alert("初始化天数据:" + data);
+					 data = JSON.parse(data);
 					 chart.clear();
 					 if(data.length == 0){
 						 writeLog('/flush/statDay','暂无数据','000');

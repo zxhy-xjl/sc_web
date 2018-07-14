@@ -82,7 +82,6 @@ angular.module('app', ['ngTouch','ionic'])
 		    }
 		    //强冲controlCode控制编码,radiotubeCode类型编号比如A1代表第一个大便池，A2代表第二个大便池
 		    $scope.flushOpen = function(controlCode,radiotubeCode){
-		    	//alert("控制器编码:" + controlCode+" 设备类型:" + radiotubeCode);
 		    	$.ajax({
 					 type:'post',
 					 contentType: 'application/json',
